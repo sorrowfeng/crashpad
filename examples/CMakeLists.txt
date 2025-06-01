@@ -4,10 +4,10 @@ if (APPLE)
 endif (APPLE)
 
 if (WIN32)
-    find_package(Qt5 COMPONENTS Widgets)
+    find_package(Qt6 COMPONENTS Widgets)
 
     add_subdirectory(windows/demo)
-    if (Qt5_FOUND)
+    if (Qt6_FOUND)
         add_subdirectory(windows/qt-window-app)
     endif ()
 endif (WIN32)

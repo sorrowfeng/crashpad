@@ -10,7 +10,7 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     add_subdirectory(crashpad)
 endif ()
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
     backtrace.cpp
@@ -24,7 +24,7 @@ set(PROJECT_SOURCES
 
 add_executable(qt_window_app ${PROJECT_SOURCES})
 
-target_link_libraries(qt_window_app PRIVATE Qt5::Gui Qt5::Core Qt5::Widgets client)
+target_link_libraries(qt_window_app PRIVATE Qt6::Gui Qt6::Core Qt6::Widgets client)
 target_compile_features(qt_window_app PRIVATE cxx_std_17)
 
 if (WIN32)

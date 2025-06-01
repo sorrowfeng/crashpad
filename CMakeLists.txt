@@ -70,6 +70,8 @@ add_subdirectory(client)
 add_subdirectory(handler)
 add_subdirectory(tools)
 
+# 添加这一行，定义可配置的 CMake 选项
+option(CRASHPAD_BUILD_EXAMPLES "Build Crashpad example programs" ON)
 if (CRASHPAD_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif (CRASHPAD_BUILD_EXAMPLES)
