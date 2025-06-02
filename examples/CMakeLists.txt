@@ -4,10 +4,12 @@ if (APPLE)
 endif (APPLE)
 
 if (WIN32)
-    find_package(Qt6 COMPONENTS Widgets)
+    # 自动查找 Qt5 或 Qt6
+    find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets)
 
     add_subdirectory(windows/demo)
-    if (Qt6_FOUND)
+    if (QT_FOUND)
+        message(STATUS "Found Qt version ${QT_VERSION_MAJOR}")
         add_subdirectory(windows/qt-window-app)
     endif ()
 endif (WIN32)

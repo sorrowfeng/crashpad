@@ -10,7 +10,13 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     add_subdirectory(crashpad)
 endif ()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+# 自动查找 Qt5 或 Qt6
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+
+# 使用主版本号来查找完整的 Qt 模块
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS 
+    Widgets
+)
 
 set(PROJECT_SOURCES
     backtrace.cpp
@@ -24,7 +30,7 @@ set(PROJECT_SOURCES
 
 add_executable(qt_window_app ${PROJECT_SOURCES})
 
-target_link_libraries(qt_window_app PRIVATE Qt6::Gui Qt6::Core Qt6::Widgets client)
+target_link_libraries(qt_window_app PRIVATE Qt::Gui Qt::Core Qt::Widgets client)
 target_compile_features(qt_window_app PRIVATE cxx_std_17)
 
 if (WIN32)

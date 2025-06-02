@@ -26,6 +26,8 @@
 .gdb_history
 .gdbinit
 /.vscode/
+.vs/
+out/
 /Makefile
 /build/fuchsia
 /out
@@ -52,4 +54,3 @@
 tag
 /cbuild
 /ndkbuild
-

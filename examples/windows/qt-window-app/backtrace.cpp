@@ -10,7 +10,8 @@
 namespace backtrace {
 std::unique_ptr<crashpad::CrashReportDatabase> database;
 
-bool initialize_crashpad(std::string_view url) {
+bool initialize_crashpad(const std::string& url,
+                         const std::wstring& handler_path) {
   using namespace crashpad;
 
   std::map<std::string, std::string> annotations;
@@ -33,8 +34,8 @@ bool initialize_crashpad(std::string_view url) {
    * significantly more robust than traditional in-process crash
    * handlers. This path may be relative.
    */
-  std::wstring handler_path(
-      L"D:/Project/GitProject/crashpad/cbuild/handler/Release/handler.exe");
+  // std::wstring handler_path(
+  //     L"D:/Project/GitProject/crashpad/cbuild/handler/Release/handler.exe");
 
   /*
    * THE FOLLOWING ANNOTATIONS MUST BE SET.
@@ -61,21 +62,12 @@ bool initialize_crashpad(std::string_view url) {
   if (database == nullptr || database->GetSettings() == NULL)
     return false;
 
-  std::cerr << __LINE__ << '\n';
-  std::cerr << __LINE__ << std::string{url} << '\n';
 
   /* Enable automated uploads. */
   database->GetSettings()->SetUploadsEnabled(true);
 
-  return CrashpadClient{}.StartHandler(handler,
-                                       db,
-                                       db,
-                                       std::string{url},
-                                       annotations,
-                                       arguments,
-                                       false,
-                                       false,
-                                       {});
+  return CrashpadClient{}.StartHandler(
+      handler, db, db, url, annotations, arguments, false, false, {});
 }
 
 void crash_memset() {

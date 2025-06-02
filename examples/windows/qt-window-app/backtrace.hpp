@@ -1,9 +1,10 @@
 #pragma once
 
-#include <string_view>
+#include <string>
 
-namespace backtrace
+namespace backtrace 
 {
-bool initialize_crashpad(std::string_view url);
+bool initialize_crashpad(const std::string& url,
+                         const std::wstring& handler_path);
 void crash_memset();
 }
