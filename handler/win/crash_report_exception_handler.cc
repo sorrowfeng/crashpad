@@ -32,7 +32,6 @@
 #include "util/win/termination_codes.h"
 
 namespace crashpad {
-
 CrashReportExceptionHandler::CrashReportExceptionHandler(
     CrashReportDatabase* database,
     CrashReportUploadThread* upload_thread,
@@ -147,8 +146,35 @@ unsigned int CrashReportExceptionHandler::ExceptionHandlerServerException(
     }
   }
 
+  // === 新增代码开始 ===
+  {
+    auto GetExecutableDirectory = [=]() -> std::wstring {
+      wchar_t path[MAX_PATH];
+      if (GetModuleFileNameW(nullptr, path, MAX_PATH) == 0) {
+        return L"";
+      }
+
+      std::wstring fullPath(path);
+      size_t lastSlashPos = fullPath.find_last_of(L"\\/");
+      if (lastSlashPos != std::wstring::npos) {
+        return fullPath.substr(0, lastSlashPos);
+      }
+
+      return L"";
+    };
+
+    std::wstring message =
+        L"程序发生崩溃，已生成 dmp 文件。\n\n"
+        L"文件路径: " +
+        GetExecutableDirectory() +
+        L"\\reports\n\n"
+        L"请将该目录下的最新文件反馈给开发团队以帮助排查问题。";
+
+    MessageBoxW(nullptr, message.c_str(), L"崩溃通知", MB_ICONERROR | MB_OK);
+  }
+  // === 新增代码结束 ===
+
   Metrics::ExceptionCaptureResult(Metrics::CaptureResult::kSuccess);
   return termination_code;
 }
-
 }  // namespace crashpad
