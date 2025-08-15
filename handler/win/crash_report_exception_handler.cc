@@ -163,14 +163,34 @@ unsigned int CrashReportExceptionHandler::ExceptionHandlerServerException(
       return L"";
     };
 
+    std::wstring reportPath = GetExecutableDirectory() + L"\\reports";
     std::wstring message =
         L"程序发生崩溃，已生成 dmp 文件。\n\n"
         L"文件路径: " +
-        GetExecutableDirectory() +
-        L"\\reports\n\n"
-        L"请将该目录下的最新文件反馈给开发团队以帮助排查问题。";
+        reportPath +
+        L"\n\n该路径已复制到剪贴板，请将该目录下的最新文件反馈给开发团队以帮助"
+        L"排查问题。";
 
-    MessageBoxW(nullptr, message.c_str(), L"崩溃通知", MB_ICONERROR | MB_OK);
+    // 将路径复制到剪贴板
+    if (OpenClipboard(nullptr)) {
+      HGLOBAL hMem =
+          GlobalAlloc(GMEM_MOVEABLE, (reportPath.size() + 1) * sizeof(wchar_t));
+      if (hMem) {
+        wchar_t* pMem = static_cast<wchar_t*>(GlobalLock(hMem));
+        if (pMem) {
+          wcscpy_s(pMem, reportPath.size() + 1, reportPath.c_str());
+          GlobalUnlock(hMem);
+          EmptyClipboard();
+          SetClipboardData(CF_UNICODETEXT, hMem);
+        }
+      }
+      CloseClipboard();
+    }
+
+    MessageBoxW(nullptr,
+                message.c_str(),
+                L"崩溃通知",
+                MB_ICONERROR | MB_OK | MB_SYSTEMMODAL);
   }
   // === 新增代码结束 ===
 
