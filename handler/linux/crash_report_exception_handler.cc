@@ -16,6 +16,9 @@
 
 #include <memory>
 #include <utility>
+#include <string>
+#include <unistd.h>
+#include <cstdlib>
 
 #include "base/logging.h"
 #include "build/build_config.h"
@@ -291,6 +294,63 @@ bool CrashReportExceptionHandler::WriteMinidumpToDatabase(
   }
 
   Metrics::ExceptionCaptureResult(Metrics::CaptureResult::kSuccess);
+
+  // === 崩溃通知开始 ===
+  {
+    // 获取 handler 所在目录（与主程序同目录）作为 reports 路径的基础
+    char exe_buf[4096] = {0};
+    ssize_t len = readlink("/proc/self/exe", exe_buf, sizeof(exe_buf) - 1);
+    std::string report_path;
+    if (len > 0) {
+      std::string full_path(exe_buf, static_cast<size_t>(len));
+      size_t last_slash = full_path.find_last_of('/');
+      if (last_slash != std::string::npos)
+        report_path = full_path.substr(0, last_slash) + "/reports";
+    }
+    if (report_path.empty())
+      report_path = "./reports";
+
+    // 消息内容（转义单引号以防 shell 注入）
+    auto escape_sq = [](std::string s) -> std::string {
+      size_t pos = 0;
+      while ((pos = s.find('\'', pos)) != std::string::npos) {
+        s.replace(pos, 1, "'\\''");
+        pos += 4;
+      }
+      return s;
+    };
+
+    std::string safe_path = escape_sq(report_path);
+    std::string message =
+        "程序发生了崩溃，已生成 dmp 文件。\\n\\n"
+        "文件路径: " + report_path + "\\n\\n"
+        "请将该目录下的所有文件发送给技术支持团队以便进行问题分析。";
+    std::string safe_msg = escape_sq(message);
+
+    // 复制路径到剪贴板（尝试 xclip / xsel）
+    system(("echo -n '" + safe_path +
+            "' | xclip -selection clipboard 2>/dev/null || "
+            "echo -n '" + safe_path +
+            "' | xsel --clipboard --input 2>/dev/null")
+               .c_str());
+
+    // 显示崩溃通知：依次尝试 zenity → kdialog → xmessage → stderr
+    int ret = system(
+        ("zenity --error --title='崩溃通知' --no-wrap --text='" +
+         safe_msg + "' 2>/dev/null")
+            .c_str());
+    if (ret != 0)
+      ret = system(
+          ("kdialog --error '" + safe_msg +
+           "' --title '崩溃通知' 2>/dev/null")
+              .c_str());
+    if (ret != 0)
+      system(("xmessage -center '" + safe_msg + "' 2>/dev/null").c_str());
+    if (ret != 0)
+      fprintf(stderr,
+              "[CrashReport] dmp saved to: %s\n", report_path.c_str());
+  }
+  // === 崩溃通知结束 ===
 
   return write_minidump_to_log ? write_minidump_to_log_succeed : true;
 }
