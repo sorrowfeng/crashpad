@@ -297,7 +297,7 @@ bool CrashReportExceptionHandler::WriteMinidumpToDatabase(
 
   // === 崩溃通知开始 ===
   {
-    // 获取 handler 所在目录（与主程序同目录）作为 reports 路径的基础
+    // 获取 handler 所在目录（与主程序同目录）作为 completed 路径的基础
     char exe_buf[4096] = {0};
     ssize_t len = readlink("/proc/self/exe", exe_buf, sizeof(exe_buf) - 1);
     std::string report_path;
@@ -305,10 +305,10 @@ bool CrashReportExceptionHandler::WriteMinidumpToDatabase(
       std::string full_path(exe_buf, static_cast<size_t>(len));
       size_t last_slash = full_path.find_last_of('/');
       if (last_slash != std::string::npos)
-        report_path = full_path.substr(0, last_slash) + "/reports";
+        report_path = full_path.substr(0, last_slash) + "/completed";
     }
     if (report_path.empty())
-      report_path = "./reports";
+      report_path = "./completed";
 
     // 消息内容（转义单引号以防 shell 注入）
     auto escape_sq = [](std::string s) -> std::string {
